@@ -1,0 +1,2306 @@
+openapi: 3.0.3
+info:
+  title: Real Estate Backend API
+  version: 1.0.0
+  description: |
+    OpenAPI specification for the backend service that powers property discovery,
+    buy/sell/exchange workflows, enquiries, notifications, and supporting user experiences.
+servers:
+  - url: http://localhost:6000
+    description: Local development server
+tags:
+  - name: Auth
+    description: OTP-based authentication flows
+  - name: Onboarding
+    description: Manage onboarding screens shown to users
+  - name: Profile
+    description: Authenticated user profile management
+  - name: Properties
+    description: CRUD operations for catalogue properties
+  - name: Sell
+    description: Sell listings created by users
+  - name: Homepage
+    description: Homepage discovery APIs
+  - name: Explore
+    description: Filter and browse properties
+  - name: Saved Properties
+    description: Manage the user's saved property list
+  - name: General Info
+    description: Informational content for the application
+  - name: Exchange
+    description: Property exchange workflows
+  - name: User Media
+    description: Profile image management
+  - name: History
+    description: User interaction history
+  - name: Enquiry
+    description: Enquiry submissions
+  - name: Feedback
+    description: User feedback submissions
+  - name: Notifications
+    description: User notifications
+paths:
+  /api/signin/send-otp:
+    post:
+      tags:
+        - Auth
+      summary: Send an OTP to a mobile number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: OTP was sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid mobile number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected error while sending the OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/signin/verify-otp:
+    post:
+      tags:
+        - Auth
+      summary: Verify an OTP and issue a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyOtpResponse'
+        '400':
+          description: OTP verification failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected error while verifying the OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/signin/resend-otp:
+    post:
+      tags:
+        - Auth
+      summary: Resend an OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequest'
+      responses:
+        '200':
+          description: OTP resent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid mobile number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected error while resending the OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/signin/{mobileNumber}:
+    get:
+      tags:
+        - Auth
+      summary: Get user details by mobile number
+      parameters:
+        - $ref: '#/components/parameters/MobileNumber'
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLookupResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Auth
+      summary: Delete a user by mobile number
+      parameters:
+        - $ref: '#/components/parameters/MobileNumber'
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLookupResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to delete the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/onboarding/screens:
+    post:
+      tags:
+        - Onboarding
+      summary: Create a new onboarding screen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingScreenInput'
+      responses:
+        '201':
+          description: Onboarding screen created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingScreen'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to create onboarding screen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Onboarding
+      summary: List active onboarding screens
+      responses:
+        '200':
+          description: List of onboarding screens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OnboardingScreen'
+        '500':
+          description: Failed to fetch onboarding screens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/onboarding/screens/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    get:
+      tags:
+        - Onboarding
+      summary: Get a specific onboarding screen
+      responses:
+        '200':
+          description: Onboarding screen details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingScreen'
+        '404':
+          description: Screen not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch onboarding screen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Onboarding
+      summary: Update an onboarding screen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingScreenInput'
+      responses:
+        '200':
+          description: Onboarding screen updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingScreen'
+        '404':
+          description: Screen not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update onboarding screen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Onboarding
+      summary: Delete an onboarding screen
+      responses:
+        '200':
+          description: Onboarding screen deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          description: Screen not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to delete onboarding screen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/profile:
+    get:
+      tags:
+        - Profile
+      summary: Get the current user's profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Profile
+      summary: Update the current user's profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Profile
+      summary: Delete the current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deleted successfully
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to delete user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/properties:
+    post:
+      tags:
+        - Properties
+      summary: Create a new property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyInput'
+      responses:
+        '201':
+          description: Property created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to create property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Properties
+      summary: List all properties
+      responses:
+        '200':
+          description: List of properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+        '500':
+          description: Failed to fetch properties
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/properties/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    get:
+      tags:
+        - Properties
+      summary: Get a property by ID
+      responses:
+        '200':
+          description: Property details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Properties
+      summary: Update a property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyInput'
+      responses:
+        '200':
+          description: Updated property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Properties
+      summary: Delete a property
+      responses:
+        '204':
+          description: Property deleted
+        '500':
+          description: Failed to delete property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/sells:
+    post:
+      tags:
+        - Sell
+      summary: Create a sell listing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SellCreateRequest'
+      responses:
+        '201':
+          description: Sell listing created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sell'
+        '400':
+          description: Validation error or upload failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to create sell listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Sell
+      summary: List all sell listings
+      responses:
+        '200':
+          description: List of sell listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sell'
+        '500':
+          description: Failed to fetch sell listings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/sells/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    get:
+      tags:
+        - Sell
+      summary: Get a sell listing by ID
+      responses:
+        '200':
+          description: Sell listing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sell'
+        '404':
+          description: Sell listing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch sell listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Sell
+      summary: Update a sell listing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SellUpdateRequest'
+      responses:
+        '200':
+          description: Updated sell listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sell'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to update sell listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Sell
+      summary: Delete a sell listing
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Sell listing deleted
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to delete sell listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/homepage:
+    get:
+      tags:
+        - Homepage
+      summary: List properties for a homepage section
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Property type to filter by (e.g., Apartment, Villa)
+      responses:
+        '200':
+          description: Filtered properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+        '400':
+          description: Missing type filter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch properties
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/homepage/search:
+    post:
+      tags:
+        - Homepage
+      summary: Search properties using keyword tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertySearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+        '400':
+          description: Missing search query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to execute search
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/explore:
+    get:
+      tags:
+        - Explore
+      summary: Browse properties with optional filters
+      parameters:
+        - name: location
+          in: query
+          schema:
+            type: string
+          description: Match properties with an exact location value
+        - name: type
+          in: query
+          schema:
+            type: string
+          description: Filter by property type
+        - name: minPrice
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: Minimum property price
+        - name: maxPrice
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: Maximum property price
+      responses:
+        '200':
+          description: Filtered properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+        '500':
+          description: Failed to fetch properties
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/saved:
+    get:
+      tags:
+        - Saved Properties
+      summary: Get saved properties for the current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of saved property IDs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to fetch saved properties
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/saved/add:
+    post:
+      tags:
+        - Saved Properties
+      summary: Save a property to the current user's list
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyReferenceRequest'
+      responses:
+        '200':
+          description: Property saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to save property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/saved/remove:
+    post:
+      tags:
+        - Saved Properties
+      summary: Remove a property from the current user's saved list
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyReferenceRequest'
+      responses:
+        '200':
+          description: Property removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: No saved properties found for user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to remove saved property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/generalinfo:
+    post:
+      tags:
+        - General Info
+      summary: Create a general information block
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneralInfoInput'
+      responses:
+        '201':
+          description: General info block created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralInfo'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to create general info block
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - General Info
+      summary: List all general information blocks
+      responses:
+        '200':
+          description: General info blocks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneralInfo'
+        '500':
+          description: Failed to fetch general info blocks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/generalinfo/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    put:
+      tags:
+        - General Info
+      summary: Update a general information block
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeneralInfoInput'
+      responses:
+        '200':
+          description: Updated general info block
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneralInfo'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update general info block
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - General Info
+      summary: Delete a general information block
+      responses:
+        '204':
+          description: General info block deleted
+        '500':
+          description: Failed to delete general info block
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/exchange:
+    post:
+      tags:
+        - Exchange
+      summary: Create a new exchange request and match properties
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeCreateRequest'
+      responses:
+        '201':
+          description: Exchange created and matches computed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeCreateResponse'
+        '400':
+          description: Missing sell listing reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Sell listing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to create exchange
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Exchange
+      summary: List all exchanges
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of exchanges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exchange'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to fetch exchanges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/exchange/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    get:
+      tags:
+        - Exchange
+      summary: Get an exchange by ID
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Exchange details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exchange'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Exchange not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to fetch exchange
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Exchange
+      summary: Update an exchange
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeUpdateRequest'
+      responses:
+        '200':
+          description: Updated exchange
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exchange'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to update exchange
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Exchange
+      summary: Delete an exchange
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Exchange deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Exchange deleted
+                  data:
+                    $ref: '#/components/schemas/Exchange'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Exchange not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to delete exchange
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/user/upload-profile-image:
+    post:
+      tags:
+        - User Media
+      summary: Upload or update the current user's profile image
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - profileImage
+              properties:
+                profileImage:
+                  type: string
+                  format: binary
+                  description: PNG or JPEG profile image (max 2 MB)
+      responses:
+        '200':
+          description: Profile image updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profile image updated
+                  profileImage:
+                    type: string
+                    format: uri
+                    description: Public URL of the uploaded image
+        '400':
+          description: No image provided or invalid file type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to upload profile image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/history:
+    get:
+      tags:
+        - History
+      summary: Get the current user's interaction history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: History snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistorySnapshot'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to fetch history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/history/buy:
+    post:
+      tags:
+        - History
+      summary: Add a property to the user's buy history
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyReferenceRequest'
+      responses:
+        '200':
+          description: Property added to buy history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to update history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/history/exchange:
+    post:
+      tags:
+        - History
+      summary: Add an exchange reference to the user's exchange history
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeReferenceRequest'
+      responses:
+        '200':
+          description: Exchange added to history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to update history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/history/buy/remove:
+    post:
+      tags:
+        - History
+      summary: Remove a property from the user's buy history
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyReferenceRequest'
+      responses:
+        '200':
+          description: Property removed from buy history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: History not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/history/exchange/remove:
+    post:
+      tags:
+        - History
+      summary: Remove an exchange reference from the user's history
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeReferenceRequest'
+      responses:
+        '200':
+          description: Exchange removed from history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: History not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/enquiry:
+    post:
+      tags:
+        - Enquiry
+      summary: Submit a property enquiry
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnquiryRequest'
+      responses:
+        '201':
+          description: Enquiry submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Invalid enquiry type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          description: Enquiry already exists for this property and type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to submit enquiry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/feedback:
+    post:
+      tags:
+        - Feedback
+      summary: Submit feedback
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackCreateRequest'
+      responses:
+        '201':
+          description: Feedback submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to submit feedback
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Feedback
+      summary: List feedback submitted by the current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Feedback entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to fetch feedback
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/feedback/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    put:
+      tags:
+        - Feedback
+      summary: Update feedback
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackUpdateRequest'
+      responses:
+        '200':
+          description: Feedback updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Feedback not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update feedback
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Feedback
+      summary: Delete feedback
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Feedback deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Feedback not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to delete feedback
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/notifications:
+    post:
+      tags:
+        - Notifications
+      summary: Create a notification for the current user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationCreateRequest'
+      responses:
+        '201':
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Notification created
+                  data:
+                    $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to create notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Notifications
+      summary: List notifications for the current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          description: Failed to fetch notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/notifications/{id}/read:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    put:
+      tags:
+        - Notifications
+      summary: Mark a notification as read
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Notification marked as read
+                  data:
+                    $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to update notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/notifications/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectId'
+    delete:
+      tags:
+        - Notifications
+      summary: Delete a notification
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Notification deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to delete notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenError:
+      description: Invalid or expired authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    ObjectId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+      description: MongoDB ObjectId
+    MobileNumber:
+      name: mobileNumber
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^\d{10}$'
+      description: 10-digit mobile number
+  schemas:
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Operation completed successfully
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+          nullable: true
+    OtpRequest:
+      type: object
+      required:
+        - mobileNumber
+      properties:
+        mobileNumber:
+          type: string
+          pattern: '^\d{10}$'
+          example: '9876543210'
+    VerifyOtpRequest:
+      type: object
+      required:
+        - mobileNumber
+        - enteredOTP
+      properties:
+        mobileNumber:
+          type: string
+          pattern: '^\d{10}$'
+          example: '9876543210'
+        enteredOTP:
+          type: string
+          minLength: 4
+          maxLength: 6
+          example: '1234'
+    VerifyOtpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: OTP verified successfully
+        userId:
+          type: string
+          example: 6650f6c1e4b7c9f9c1a2d3e4
+        token:
+          type: string
+          description: JWT access token
+        isVerified:
+          type: boolean
+        name:
+          type: string
+          nullable: true
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 6650f6c1e4b7c9f9c1a2d3e4
+        mobileNumber:
+          type: string
+          pattern: '^\d{10}$'
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        otp:
+          type: string
+          nullable: true
+        otpExpiry:
+          type: string
+          format: date-time
+          nullable: true
+        isVerified:
+          type: boolean
+        profileImage:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    UserLookupResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/User'
+            - type: 'null'
+    OnboardingScreenInput:
+      type: object
+      required:
+        - title
+        - order
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        order:
+          type: integer
+        isActive:
+          type: boolean
+          default: true
+    OnboardingScreen:
+      allOf:
+        - $ref: '#/components/schemas/OnboardingScreenInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+              example: 6650f6c1e4b7c9f9c1a2d3e5
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    PropertyLocation:
+      type: object
+      required:
+        - country
+        - state
+        - city
+        - locality
+        - pincode
+        - fullAddress
+      properties:
+        country:
+          type: string
+          example: India
+        state:
+          type: string
+          example: Telangana
+        city:
+          type: string
+        locality:
+          type: string
+        pincode:
+          type: string
+          pattern: '^\d{6}$'
+        fullAddress:
+          type: string
+    MapCoordinates:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+    PropertyLayout:
+      type: object
+      properties:
+        bedrooms:
+          type: integer
+        bathrooms:
+          type: integer
+    PropertyInput:
+      type: object
+      required:
+        - title
+        - type
+        - location
+        - price
+      properties:
+        title:
+          type: string
+        type:
+          type: string
+          enum:
+            - Apartment
+            - Villa
+            - Commercial
+            - Plot
+            - OrganicHome
+        subtype:
+          type: string
+          enum:
+            - Retail
+            - Mixed-Use
+            - Office
+            - Land
+            - Residential
+            - Agricultural
+            - Commercial
+        location:
+          $ref: '#/components/schemas/PropertyLocation'
+        mapCoordinates:
+          $ref: '#/components/schemas/MapCoordinates'
+        price:
+          type: number
+        image:
+          type: string
+          format: uri
+        sqft:
+          type: number
+        about:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        layout:
+          $ref: '#/components/schemas/PropertyLayout'
+    Property:
+      allOf:
+        - $ref: '#/components/schemas/PropertyInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+    SellLocation:
+      type: object
+      required:
+        - city
+        - locality
+      properties:
+        city:
+          type: string
+        locality:
+          type: string
+        projectName:
+          type: string
+    SellInput:
+      type: object
+      required:
+        - advertisementType
+        - propertyType
+        - bhkType
+        - builtUpArea
+        - location
+        - price
+      properties:
+        advertisementType:
+          type: string
+          enum:
+            - Sale
+            - Rent/Lease
+        propertyType:
+          type: string
+          enum:
+            - Apartment
+            - Independent House
+            - Villa
+            - Plot/Land
+        bhkType:
+          type: string
+          example: 2 BHK
+        builtUpArea:
+          type: number
+        carpetArea:
+          type: number
+        location:
+          $ref: '#/components/schemas/SellLocation'
+        price:
+          type: number
+        isNegotiable:
+          type: boolean
+        ageOfConstruction:
+          type: string
+        facing:
+          type: string
+        ownership:
+          type: string
+        furnishedStatus:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        locationMapLink:
+          type: string
+          format: uri
+    SellCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/SellInput'
+        - type: object
+          properties:
+            images:
+              type: array
+              items:
+                type: string
+                format: binary
+              description: One or more property images (PNG or JPEG, max 2 MB each)
+    SellUpdateRequest:
+      type: object
+      properties:
+        advertisementType:
+          type: string
+          enum:
+            - Sale
+            - Rent/Lease
+        propertyType:
+          type: string
+          enum:
+            - Apartment
+            - Independent House
+            - Villa
+            - Plot/Land
+        bhkType:
+          type: string
+        builtUpArea:
+          type: number
+        carpetArea:
+          type: number
+        location:
+          $ref: '#/components/schemas/SellLocation'
+        price:
+          type: number
+        isNegotiable:
+          type: boolean
+        ageOfConstruction:
+          type: string
+        facing:
+          type: string
+        ownership:
+          type: string
+        furnishedStatus:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        imageURLs:
+          type: array
+          items:
+            type: string
+            format: uri
+        locationMapLink:
+          type: string
+          format: uri
+    Sell:
+      allOf:
+        - $ref: '#/components/schemas/SellInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            listingId:
+              type: string
+            userId:
+              type: string
+            imageURLs:
+              type: array
+              items:
+                type: string
+                format: uri
+            createdAt:
+              type: string
+              format: date-time
+    PropertySearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Space-delimited keywords to search across property fields
+    PropertyReferenceRequest:
+      type: object
+      required:
+        - propertyId
+      properties:
+        propertyId:
+          type: string
+          description: Property ObjectId
+    ExchangeReferenceRequest:
+      type: object
+      required:
+        - exchangeId
+      properties:
+        exchangeId:
+          type: string
+          description: Exchange ObjectId
+    GeneralInfoInput:
+      type: object
+      required:
+        - section
+        - content
+      properties:
+        section:
+          type: string
+          example: Construction
+        content:
+          type: string
+        updatedBy:
+          type: string
+    GeneralInfo:
+      allOf:
+        - $ref: '#/components/schemas/GeneralInfoInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+    ExchangeCreateRequest:
+      type: object
+      required:
+        - sellId
+      properties:
+        sellId:
+          type: string
+          description: Sell listing ObjectId to initiate an exchange from
+    ExchangeCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Exchange created
+        exchangeId:
+          type: string
+        matchedCount:
+          type: integer
+        fallbackToBuy:
+          type: boolean
+        matchedProperties:
+          type: array
+          description: Matched property IDs
+          items:
+            type: string
+    ExchangeUpdateRequest:
+      type: object
+      properties:
+        sellerProperty:
+          type: string
+        matchedProperties:
+          type: array
+          items:
+            type: string
+        fallbackToBuy:
+          type: boolean
+    Exchange:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        sellerProperty:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/Sell'
+        matchedProperties:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - $ref: '#/components/schemas/Property'
+        fallbackToBuy:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    HistorySnapshot:
+      type: object
+      properties:
+        userId:
+          type: string
+          nullable: true
+        buyList:
+          type: array
+          items:
+            type: string
+        exchangeList:
+          type: array
+          items:
+            type: string
+        sellList:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+    EnquiryRequest:
+      type: object
+      required:
+        - propertyId
+        - type
+      properties:
+        propertyId:
+          type: string
+          description: Property ObjectId
+        message:
+          type: string
+        type:
+          type: string
+          enum:
+            - Buy
+            - Exchange
+    FeedbackCreateRequest:
+      type: object
+      required:
+        - fullName
+        - email
+        - subject
+        - message
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        subject:
+          type: string
+        message:
+          type: string
+    FeedbackUpdateRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+        message:
+          type: string
+    Feedback:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        subject:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    NotificationCreateRequest:
+      type: object
+      required:
+        - category
+        - eventCode
+        - message
+      properties:
+        category:
+          type: string
+          enum:
+            - Buy
+            - Sell
+            - Exchange
+            - System
+        eventCode:
+          type: string
+          enum:
+            - BUY_CREATED
+            - BUY_MATCHED
+            - BUY_COMPLETED
+            - BUY_REJECTED
+            - BUY_PRICE_UPDATED
+            - SELL_CREATED
+            - SELL_INTEREST
+            - SELL_CLOSED
+            - EXCHANGE_PROPOSED
+            - EXCHANGE_MATCHED
+            - EXCHANGE_COMPLETED
+            - EXCHANGE_FAILED
+            - SYSTEM_POLICY_UPDATE
+            - SYSTEM_APP_UPDATE
+        message:
+          type: string
+        propertyId:
+          type: string
+          nullable: true
+          description: Related property ObjectId
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        category:
+          type: string
+        eventCode:
+          type: string
+        propertyId:
+          oneOf:
+            - type: string
+            - type: 'null'
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        isRead:
+          type: boolean
