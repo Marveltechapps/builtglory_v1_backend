@@ -8,10 +8,12 @@ info:
     email: support@builtglory.com
 
 servers:
+  - url: http://3.6.250.39:6000/api
+    description: AWS Production server
   - url: http://localhost:6000/api
-    description: Development server
+    description: Local development server
   - url: https://api.builtglory.com/api
-    description: Production server
+    description: Production server (future)
 
 components:
   securitySchemes:
