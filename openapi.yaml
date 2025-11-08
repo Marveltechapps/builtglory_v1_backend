@@ -1,0 +1,1277 @@
+openapi: 3.0.3
+info:
+  title: Built Glory API
+  description: Real estate platform API for buying, selling, and exchanging properties
+  version: 1.0.0
+  contact:
+    name: Built Glory
+    email: support@builtglory.com
+
+servers:
+  - url: http://localhost:6000/api
+    description: Development server
+  - url: https://api.builtglory.com/api
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        mobileNumber:
+          type: string
+          pattern: '^\d{10}$'
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        isVerified:
+          type: boolean
+        profileImage:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Property:
+      type: object
+      required:
+        - title
+        - type
+        - location
+        - price
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          enum: [Apartment, Villa, Commercial, Plot, OrganicHome]
+        subtype:
+          type: string
+          enum: [Retail, Mixed-Use, Office, Land, Residential, Agricultural, Commercial]
+        location:
+          type: object
+          properties:
+            country:
+              type: string
+              default: India
+            state:
+              type: string
+            city:
+              type: string
+            locality:
+              type: string
+            pincode:
+              type: string
+              pattern: '^[0-9]{6}$'
+            fullAddress:
+              type: string
+        mapCoordinates:
+          type: object
+          properties:
+            lat:
+              type: number
+            lng:
+              type: number
+        price:
+          type: number
+        image:
+          type: string
+        sqft:
+          type: number
+        about:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        layout:
+          type: object
+          properties:
+            bedrooms:
+              type: integer
+            bathrooms:
+              type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    Sell:
+      type: object
+      required:
+        - advertisementType
+        - propertyType
+        - bhkType
+        - builtUpArea
+        - location
+        - price
+      properties:
+        _id:
+          type: string
+        listingId:
+          type: string
+        userId:
+          type: string
+        advertisementType:
+          type: string
+          enum: [Sale, Rent/Lease]
+        propertyType:
+          type: string
+          enum: [Apartment, Independent House, Villa, Plot/Land]
+        bhkType:
+          type: string
+        builtUpArea:
+          type: number
+        carpetArea:
+          type: number
+        location:
+          type: object
+          properties:
+            city:
+              type: string
+            locality:
+              type: string
+            projectName:
+              type: string
+        price:
+          type: number
+        isNegotiable:
+          type: boolean
+        ageOfConstruction:
+          type: string
+        facing:
+          type: string
+        ownership:
+          type: string
+        furnishedStatus:
+          type: string
+        amenities:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        imageURLs:
+          type: array
+          items:
+            type: string
+        locationMapLink:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Exchange:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        sellerProperty:
+          type: string
+        matchedProperties:
+          type: array
+          items:
+            type: string
+        fallbackToBuy:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        category:
+          type: string
+          enum: [Buy, Sell, Exchange, System]
+        eventCode:
+          type: string
+          enum:
+            - BUY_CREATED
+            - BUY_MATCHED
+            - BUY_COMPLETED
+            - BUY_REJECTED
+            - BUY_PRICE_UPDATED
+            - SELL_CREATED
+            - SELL_INTEREST
+            - SELL_CLOSED
+            - EXCHANGE_PROPOSED
+            - EXCHANGE_MATCHED
+            - EXCHANGE_COMPLETED
+            - EXCHANGE_FAILED
+            - SYSTEM_POLICY_UPDATE
+            - SYSTEM_APP_UPDATE
+        propertyId:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        isRead:
+          type: boolean
+
+    Feedback:
+      type: object
+      required:
+        - fullName
+        - email
+        - subject
+        - message
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Enquiry:
+      type: object
+      required:
+        - propertyId
+        - type
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        propertyId:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+          enum: [Buy, Exchange]
+        timestamp:
+          type: string
+          format: date-time
+
+    History:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        buyList:
+          type: array
+          items:
+            type: string
+        exchangeList:
+          type: array
+          items:
+            type: string
+        sellList:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SavedProperty:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        savedProperties:
+          type: array
+          items:
+            type: string
+
+    ApiError:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+        statusCode:
+          type: integer
+
+    ApiSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+
+paths:
+  # Authentication Endpoints
+  /signin/send-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Send OTP to mobile number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mobileNumber
+              properties:
+                mobileNumber:
+                  type: string
+                  pattern: '^\d{10}$'
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccess'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /signin/verify-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Verify OTP and get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mobileNumber
+                - otp
+              properties:
+                mobileNumber:
+                  type: string
+                otp:
+                  type: string
+      responses:
+        '200':
+          description: OTP verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid OTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /signin/resend-otp:
+    post:
+      tags:
+        - Authentication
+      summary: Resend OTP to mobile number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mobileNumber
+              properties:
+                mobileNumber:
+                  type: string
+      responses:
+        '200':
+          description: OTP resent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSuccess'
+
+  /signin/{mobileNumber}:
+    get:
+      tags:
+        - Authentication
+      summary: Get user by mobile number
+      parameters:
+        - name: mobileNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    delete:
+      tags:
+        - Authentication
+      summary: Delete user by mobile number
+      parameters:
+        - name: mobileNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully
+
+  # Profile Endpoints
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+    put:
+      tags:
+        - Profile
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                profileImage:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags:
+        - Profile
+      summary: Delete user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile deleted successfully
+
+  # Property Endpoints
+  /properties:
+    get:
+      tags:
+        - Properties
+      summary: Get all properties
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+    post:
+      tags:
+        - Properties
+      summary: Create new property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Property'
+      responses:
+        '201':
+          description: Property created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+
+  /properties/{id}:
+    get:
+      tags:
+        - Properties
+      summary: Get property by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Property details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '404':
+          description: Property not found
+    put:
+      tags:
+        - Properties
+      summary: Update property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Property'
+      responses:
+        '200':
+          description: Property updated
+    delete:
+      tags:
+        - Properties
+      summary: Delete property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Property deleted
+
+  # Sell Endpoints
+  /sells:
+    get:
+      tags:
+        - Sell
+      summary: Get all sell listings
+      responses:
+        '200':
+          description: List of sell listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sell'
+    post:
+      tags:
+        - Sell
+      summary: Create sell listing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                advertisementType:
+                  type: string
+                propertyType:
+                  type: string
+                bhkType:
+                  type: string
+                builtUpArea:
+                  type: number
+                carpetArea:
+                  type: number
+                location:
+                  type: object
+                price:
+                  type: number
+                isNegotiable:
+                  type: boolean
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Sell listing created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sell'
+
+  /sells/{id}:
+    get:
+      tags:
+        - Sell
+      summary: Get sell listing by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sell listing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sell'
+    put:
+      tags:
+        - Sell
+      summary: Update sell listing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sell'
+      responses:
+        '200':
+          description: Sell listing updated
+    delete:
+      tags:
+        - Sell
+      summary: Delete sell listing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sell listing deleted
+
+  # Exchange Endpoints
+  /exchange:
+    get:
+      tags:
+        - Exchange
+      summary: Get all exchanges
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of exchanges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exchange'
+    post:
+      tags:
+        - Exchange
+      summary: Create exchange
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sellerProperty:
+                  type: string
+                matchedProperties:
+                  type: array
+                  items:
+                    type: string
+                fallbackToBuy:
+                  type: boolean
+      responses:
+        '201':
+          description: Exchange created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exchange'
+
+  /exchange/{id}:
+    get:
+      tags:
+        - Exchange
+      summary: Get exchange by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exchange details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exchange'
+    put:
+      tags:
+        - Exchange
+      summary: Update exchange
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Exchange'
+      responses:
+        '200':
+          description: Exchange updated
+    delete:
+      tags:
+        - Exchange
+      summary: Delete exchange
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exchange deleted
+
+  # Homepage Endpoints
+  /homepage:
+    get:
+      tags:
+        - Homepage
+      summary: Get properties by type for homepage
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Properties for homepage
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+
+  /homepage/search:
+    post:
+      tags:
+        - Homepage
+      summary: Search properties
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                city:
+                  type: string
+                locality:
+                  type: string
+                minPrice:
+                  type: number
+                maxPrice:
+                  type: number
+                bedrooms:
+                  type: integer
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+
+  # Explore Endpoints
+  /explore:
+    get:
+      tags:
+        - Explore
+      summary: Fetch and filter properties
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: city
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Filtered properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+
+  # Saved Properties Endpoints
+  /saved:
+    get:
+      tags:
+        - Saved Properties
+      summary: Get saved properties
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of saved properties
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedProperty'
+
+  /saved/add:
+    post:
+      tags:
+        - Saved Properties
+      summary: Save a property
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - propertyId
+              properties:
+                propertyId:
+                  type: string
+      responses:
+        '200':
+          description: Property saved successfully
+
+  /saved/remove:
+    post:
+      tags:
+        - Saved Properties
+      summary: Remove saved property
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - propertyId
+              properties:
+                propertyId:
+                  type: string
+      responses:
+        '200':
+          description: Property removed successfully
+
+  # History Endpoints
+  /history:
+    get:
+      tags:
+        - History
+      summary: Get user history
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/History'
+
+  /history/buy:
+    post:
+      tags:
+        - History
+      summary: Add to buy list
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                propertyId:
+                  type: string
+      responses:
+        '200':
+          description: Added to buy list
+
+  /history/buy/remove:
+    post:
+      tags:
+        - History
+      summary: Remove from buy list
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                propertyId:
+                  type: string
+      responses:
+        '200':
+          description: Removed from buy list
+
+  /history/exchange:
+    post:
+      tags:
+        - History
+      summary: Add to exchange list
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                exchangeId:
+                  type: string
+      responses:
+        '200':
+          description: Added to exchange list
+
+  /history/exchange/remove:
+    post:
+      tags:
+        - History
+      summary: Remove from exchange list
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                exchangeId:
+                  type: string
+      responses:
+        '200':
+          description: Removed from exchange list
+
+  # Enquiry Endpoints
+  /enquiry:
+    post:
+      tags:
+        - Enquiry
+      summary: Submit enquiry
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - propertyId
+                - type
+              properties:
+                propertyId:
+                  type: string
+                message:
+                  type: string
+                type:
+                  type: string
+                  enum: [Buy, Exchange]
+      responses:
+        '201':
+          description: Enquiry submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enquiry'
+
+  # Feedback Endpoints
+  /feedback:
+    get:
+      tags:
+        - Feedback
+      summary: Get user feedback
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of feedback
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+    post:
+      tags:
+        - Feedback
+      summary: Submit feedback
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+                - email
+                - subject
+                - message
+              properties:
+                fullName:
+                  type: string
+                email:
+                  type: string
+                subject:
+                  type: string
+                message:
+                  type: string
+      responses:
+        '201':
+          description: Feedback submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+
+  /feedback/{id}:
+    put:
+      tags:
+        - Feedback
+      summary: Update feedback
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+      responses:
+        '200':
+          description: Feedback updated
+    delete:
+      tags:
+        - Feedback
+      summary: Delete feedback
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback deleted
+
+  # Notifications Endpoints
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Get user notifications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+    post:
+      tags:
+        - Notifications
+      summary: Create notification
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '201':
+          description: Notification created
+
+  /notifications/{id}/read:
+    put:
+      tags:
+        - Notifications
+      summary: Mark notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification marked as read
+
+  /notifications/{id}:
+    delete:
+      tags:
+        - Notifications
+      summary: Delete notification
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification deleted
+
+tags:
+  - name: Authentication
+    description: User authentication operations
+  - name: Profile
+    description: User profile management
+  - name: Properties
+    description: Property operations
+  - name: Sell
+    description: Sell listing operations
+  - name: Exchange
+    description: Property exchange operations
+  - name: Homepage
+    description: Homepage and search operations
+  - name: Explore
+    description: Property exploration
+  - name: Saved Properties
+    description: Saved properties management
+  - name: History
+    description: User history tracking
+  - name: Enquiry
+    description: Enquiry operations
+  - name: Feedback
+    description: User feedback operations
+  - name: Notifications
+    description: Notification management
+
